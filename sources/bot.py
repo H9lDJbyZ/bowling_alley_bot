@@ -3,13 +3,21 @@ import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
 from aiogram.enums.dice_emoji import DiceEmoji
-from aiogram import F
+# from aiogram import F
+from aiohttp import web
 import json
 from os import getenv
 
 
 logging.basicConfig(level=logging.INFO)
-bot = Bot(getenv('BA_BOT_TOKEN'))
+logger = logging.getLogger(__name__)
+
+BOT_TOKEN = getenv('BA_BOT_TOKEN')
+UPDATE_MODE = int(getenv('UPDATE_MODE'))
+PORT = int(getenv('PORT'))
+
+
+bot = Bot(BOT_TOKEN)
 dp = Dispatcher()
 
 score_file = 'score.json'
@@ -86,10 +94,48 @@ def save_score(score: dict):
         print(e)
 
 
-# Запуск процесса поллинга новых апдейтов
+routes = web.RouteTableDef()
+
+
+@routes.get("/")
+async def index(request):
+    """Используется для health check"""
+    return web.Response(text="OK")
+
+
+@routes.post(f"/{BOT_TOKEN}")
+async def handle_webhook_request(request):
+    """Обрабатывает webhook из telegram"""
+
+    # Достаем токен
+    url = str(request.url)
+    index = url.rfind("/")
+    token = url[index + 1 :]
+
+    # Проверяем токен
+    if token == BOT_TOKEN:
+        request_data = await request.json()
+        update = types.Update(**request_data)
+        await dp._process_update(bot=bot, update=update)
+
+        return web.Response(text="OK")
+    else:
+        return web.Response(status=403)
+
+
+if __name__ == "__main__" and UPDATE_MODE == 1:
+    logger.info('webhook mode')
+    logger.info("Сервер заработал ...")
+
+    app = web.Application()
+    app.add_routes(routes)
+    web.run_app(app, host="0.0.0.0", port=PORT)
+
+
 async def main():
     await dp.start_polling(bot)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__" and UPDATE_MODE == 0:
+    logger.info('polling mode')
     asyncio.run(main())
