@@ -8,4 +8,4 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY ./sources /code/sources
 
-CMD ["python", "sources/main.py"]
+CMD ["python", "sources/bot.py"]
