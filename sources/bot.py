@@ -38,9 +38,9 @@ async def get_score(message: types.Message):
         for score in scores:
             s = scores[score]
             if s['score_value'] > 0:
-                text += f'{s['fullname']} (@{s['username']}): {s['score_value']}, strikes: {s['strikes']}\n'
+                text += f'{s['fullname']} ({s['username']}): {s['score_value']}, strikes: {s['strikes']}\n'
     if text == '':
-        text == 'Таблица лидеров пуста'
+        text = 'Таблица лидеров пуста'
     await message.answer(text)
 
 
