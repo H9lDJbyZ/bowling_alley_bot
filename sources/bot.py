@@ -123,19 +123,18 @@ async def handle_webhook_request(request):
         return web.Response(status=403)
 
 
-if __name__ == "__main__" and UPDATE_MODE == 1:
-    logger.info('webhook mode')
-    logger.info("Сервер заработал ...")
-
-    app = web.Application()
-    app.add_routes(routes)
-    web.run_app(app, host="0.0.0.0", port=PORT)
-
-
 async def main():
     await dp.start_polling(bot)
 
 
-if __name__ == "__main__" and UPDATE_MODE == 0:
-    logger.info('polling mode')
-    asyncio.run(main())
+if __name__ == "__main__":
+    if UPDATE_MODE == 1:
+        logger.info('webhook mode')
+        logger.info("Сервер заработал ...")
+
+        app = web.Application()
+        app.add_routes(routes)
+        web.run_app(app, host="0.0.0.0", port=PORT)
+    else:
+        logger.info('polling mode')
+        asyncio.run(main())
